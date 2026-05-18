@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Bench</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #1B3A6B; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0D1E3A; }
+    ::-webkit-scrollbar-thumb { background: #24406A; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3A5A8A; }
+    textarea { font-family: Georgia, serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+
+    /* ── Colour palette ─────────────────────────────────────────────── */
+    const NAVY    = '#1B3A6B';
+    const DK_CARD = '#0D1E3A';
+    const DK_INPUT= '#152849';
+    const BORDR   = '#24406A';
+    const WHITE   = '#FFFFFF';
+    const LT_TEXT = '#B5CEEA';
+    const MUTED   = '#8AA8C0';
+    const BRIGHT  = '#7AAED8';
+    const AMBER   = '#E2A458';
+
+    /* ── Minimal SVG icon components ────────────────────────────────── */
+    function Svg({ size, color, children, viewBox = '0 0 24 24', fill = 'none', style }) {
+      return (
+        <svg width={size} height={size} viewBox={viewBox} fill={fill}
+             stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+             style={{ flexShrink: 0, ...style }}>
+          {children}
+        </svg>
+      );
+    }
+    const Send        = ({size=16,color='currentColor'}) => <Svg size={size} color={color}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></Svg>;
+    const FileText    = ({size=16,color='currentColor'}) => <Svg size={size} color={color}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></Svg>;
+    const BarChart3   = ({size=16,color='currentColor'}) => <Svg size={size} color={color}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></Svg>;
+    const Info        = ({size=16,color='currentColor'}) => <Svg size={size} color={color}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></Svg>;
+    const ChevronDown = ({size=16,color='currentColor'}) => <Svg size={size} color={color}><polyline points="6 9 12 15 18 9"/></Svg>;
+    const ChevronUp   = ({size=16,color='currentColor'}) => <Svg size={size} color={color}><polyline points="18 15 12 9 6 15"/></Svg>;
+    const AlertCircle = ({size=16,color='currentColor'}) => <Svg size={size} color={color}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></Svg>;
+    const CheckCircle2= ({size=16,color='currentColor'}) => <Svg size={size} color={color}><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></Svg>;
+    const Sparkles    = ({size=16,color='currentColor'}) => <Svg size={size} color={color} fill={color} stroke="none"><path d="M12 3l1.5 5.5 5.5 1.5-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z"/><path d="M19 3l.5 2 2 .5-2 .5L19 8l-.5-2-2-.5 2-.5z"/><path d="M5 17l.5 2 2 .5-2 .5L5 22l-.5-2-2-.5 2-.5z"/></Svg>;
+    const ArrowLeft   = ({size=16,color='currentColor'}) => <Svg size={size} color={color}><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></Svg>;
+    const ArrowUpDown = ({size=14,color='currentColor'}) => <Svg size={size} color={color}><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></Svg>;
+    const ArrowUp2    = ({size=14,color='currentColor'}) => <Svg size={size} color={color}><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></Svg>;
+    const ArrowDown2  = ({size=14,color='currentColor'}) => <Svg size={size} color={color}><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></Svg>;
+    const Pencil      = ({size=14,color='currentColor'}) => <Svg size={size} color={color}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></Svg>;
+    const CheckIcon   = ({size=14,color='currentColor'}) => <Svg size={size} color={color}><polyline points="20 6 9 17 4 12"/></Svg>;
+    const XIcon       = ({size=14,color='currentColor'}) => <Svg size={size} color={color}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Svg>;
+    const FlaskConical= ({size=28,color='currentColor'}) => <Svg size={size} color={color}><path d="M14 2v6l3.5 10H6.5L10 8V2"/><line x1="8.5" y1="2" x2="15.5" y2="2"/></Svg>;
+
+    /* ══════════════════════════════════════════════════════════════════
+       ITEM 1 — Public Comment Letter (AI-Mediated Task)
+    ══════════════════════════════════════════════════════════════════ */
+    const PROPOSAL = `PROPOSED AMENDMENT TO ZONING CODE §17.4
+
+The Springfield Planning Commission proposes amending Section 17.4 to permit multi-family residential structures of up to four (4) stories on parcels currently zoned R-2, where such parcels lie within one-quarter mile (¼ mi) of a public elementary, middle, or high school.
+
+Current zoning limits R-2 parcels to two-family structures of two stories or less. The proposed amendment would apply to approximately 47 parcels totaling 28.3 acres, of which 31 parcels (66%) currently contain single-family or duplex structures.
+
+Affected schools include Lincoln Elementary, Roosevelt Middle, and Springfield High. The Commission estimates the amendment, if approved, would enable construction of 220–340 new housing units over the next decade. New construction would be subject to existing height, setback, and parking requirements, with parking minimums reduced from 2.0 to 1.5 spaces per unit.
+
+A public comment period is open through April 15. The Commission will vote on April 22.`;
+
+    const SURVEY = `COMMUNITY SURVEY: HOUSING NEAR SCHOOLS — January 2026
+
+Respondents: 412 (of approximately 14,300 adult residents)
+
+Support some increase in density near schools: 58%
+Oppose any increase: 31%
+Undecided: 11%
+
+Top concerns among supporters (multiple responses allowed):
+• Housing affordability for teachers and young families — 71%
+• Reduced car commutes — 44%
+• Reinvestment in school neighborhoods — 38%
+• Lower municipal infrastructure costs — 22%
+
+Top concerns among opponents:
+• Traffic congestion near schools — 67%
+• School overcrowding — 61%
+• Changes to neighborhood character — 53%
+• Construction noise and disruption — 41%
+
+Note: Survey distributed via city email list and website; not statistically representative.`;
+
+    const MEMO = `PLANNING STAFF MEMO — April 3, 2026
+Re: Proposed Amendment to §17.4
+
+The proposed amendment responds to a 14% increase in average rents over three years and persistent recruitment difficulties at the school district (47 teaching vacancies entering 2025–26).
+
+Anticipated benefits: increased rental supply within walking and biking distance of schools; potential reductions in family transportation costs; estimated $0.8M–$1.4M in annual property tax revenue at buildout.
+
+Anticipated concerns: moderate increases in local traffic (estimated 8–12% additional vehicle trips on affected streets); pressure on school capacity (Lincoln Elementary currently at 94% capacity); possible displacement of existing tenants during redevelopment.
+
+Mitigation options considered but not included in the proposal: phased implementation, an inclusionary zoning requirement, or impact fees earmarked for school capacity expansion.
+
+The Commission requests comments addressing:
+1. Whether the amendment as drafted addresses identified housing needs.
+2. Whether additional protections (e.g., inclusionary zoning) should be included.
+3. Whether the impact analysis is sufficient.`;
+
+    const SYSTEM_PROMPT_1 = `You are a writing assistant helping a high school student draft a public comment letter (200–250 words) on a proposed zoning amendment in their town. Be conversational, substantive, and willing to suggest specific phrasings when asked — but encourage the student to own the argumentative choices. Keep responses concise (typically under 150 words). If asked to write the letter outright, offer to help structure it but suggest they draft first so you can give targeted feedback.
+
+The materials the student has access to:
+
+[PROPOSAL]
+${PROPOSAL}
+
+[SURVEY]
+${SURVEY}
+
+[STAFF MEMO]
+${MEMO}
+
+When the student asks factual questions, answer from these materials only. If something isn't in the materials, say so.`;
+
+    function PublicCommentItem() {
+      const [activeTab, setActiveTab] = useState('proposal');
+      const [messages, setMessages] = useState([]);
+      const [input, setInput] = useState('');
+      const [isLoading, setIsLoading] = useState(false);
+      const [letter, setLetter] = useState('');
+      const [showAssessment, setShowAssessment] = useState(false);
+      const chatEndRef = useRef(null);
+
+      useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isLoading]);
+
+      const wordCount = letter.trim() ? letter.trim().split(/\s+/).length : 0;
+
+      async function handleSend() {
+        if (!input.trim() || isLoading) return;
+        const userMsg = { role: 'user', content: input.trim() };
+        const next = [...messages, userMsg];
+        setMessages(next);
+        setInput('');
+        setIsLoading(true);
+        try {
+          const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: 'claude-sonnet-4-20250514',
+              max_tokens: 1000,
+              system: SYSTEM_PROMPT_1,
+              messages: next.map(m => ({ role: m.role, content: m.content }))
+            })
+          });
+          const data = await res.json();
+          const text = (data.content || []).map(c => c.text || '').join('').trim();
+          setMessages([...next, { role: 'assistant', content: text || '(no response)' }]);
+        } catch (e) {
+          setMessages([...next, { role: 'assistant', content: 'Error contacting the assistant: ' + e.message }]);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
+      const materials = {
+        proposal: { label: 'Proposal',   icon: FileText,  content: PROPOSAL },
+        survey:   { label: 'Survey',     icon: BarChart3, content: SURVEY   },
+        memo:     { label: 'Staff memo', icon: FileText,  content: MEMO     }
+      };
+
+      return (
+        <div style={{ background: NAVY, minHeight: '100vh', color: WHITE, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          {/* Top bar */}
+          <div style={{ borderBottom: `1px solid ${BORDR}`, padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, marginBottom: 2 }}>PHASE 3 ITEM EXAMPLE · AI-MEDIATED TASK</div>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: 20, fontWeight: 600 }}>Public Comment Letter — Zoning Amendment</div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ fontSize: 12, color: MUTED }}>Time remaining</div>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: 18, color: BRIGHT, letterSpacing: 1 }}>29:42</div>
+              <button style={{ background: BRIGHT, color: NAVY, border: 'none', padding: '8px 18px', fontWeight: 600, borderRadius: 4, cursor: 'pointer', fontSize: 13 }}>
+                Submit Final
+              </button>
+            </div>
+          </div>
+
+          {/* Two-column layout */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr', gap: 16, padding: 16, minHeight: 'calc(100vh - 73px)' }}>
+            {/* Left column */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minHeight: 0 }}>
+              {/* Materials card */}
+              <div style={{ background: DK_CARD, border: `1px solid ${BORDR}`, borderRadius: 6, display: 'flex', flexDirection: 'column', flex: '1 1 50%', minHeight: 0 }}>
+                <div style={{ display: 'flex', borderBottom: `1px solid ${BORDR}` }}>
+                  {Object.entries(materials).map(([key, m]) => {
+                    const Icon = m.icon;
+                    const active = activeTab === key;
+                    return (
+                      <button key={key} onClick={() => setActiveTab(key)} style={{
+                        background: active ? DK_INPUT : 'transparent', color: active ? WHITE : MUTED,
+                        border: 'none', padding: '12px 18px', cursor: 'pointer', fontSize: 13,
+                        fontWeight: active ? 600 : 400, display: 'flex', alignItems: 'center', gap: 8,
+                        borderBottom: active ? `2px solid ${BRIGHT}` : '2px solid transparent', transition: 'all 0.15s'
+                      }}>
+                        <Icon size={14} />{m.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{ padding: '18px 22px', overflow: 'auto', flex: 1, fontSize: 13.5, lineHeight: 1.65, color: LT_TEXT, whiteSpace: 'pre-wrap', fontFamily: 'Georgia, serif' }}>
+                  {materials[activeTab].content}
+                </div>
+              </div>
+
+              {/* Letter editor */}
+              <div style={{ background: DK_CARD, border: `1px solid ${BORDR}`, borderRadius: 6, display: 'flex', flexDirection: 'column', flex: '1 1 50%', minHeight: 0 }}>
+                <div style={{ padding: '12px 18px', borderBottom: `1px solid ${BORDR}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2 }}>YOUR LETTER</div>
+                  <div style={{ fontSize: 12, color: wordCount > 250 ? '#E89A8A' : wordCount >= 200 ? BRIGHT : MUTED }}>
+                    {wordCount} / 200–250 words
+                  </div>
+                </div>
+                <textarea value={letter} onChange={e => setLetter(e.target.value)}
+                  placeholder="Draft your letter here. You may use the assistant on the right to help you think through the issue, structure your argument, or refine wording — but the writing is yours."
+                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: WHITE, padding: '18px 22px', fontSize: 14, lineHeight: 1.65, fontFamily: 'Georgia, serif', resize: 'none' }} />
+              </div>
+            </div>
+
+            {/* Right column — Chat */}
+            <div style={{ background: DK_CARD, border: `1px solid ${BORDR}`, borderRadius: 6, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <div style={{ padding: '12px 18px', borderBottom: `1px solid ${BORDR}` }}>
+                <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, marginBottom: 2 }}>DRAFTING ASSISTANT</div>
+                <div style={{ fontSize: 13, color: LT_TEXT }}>Ask for help thinking through the materials, structuring your argument, or refining your wording.</div>
+              </div>
+              <div style={{ flex: 1, overflow: 'auto', padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {messages.length === 0 && (
+                  <div style={{ color: MUTED, fontSize: 13, fontStyle: 'italic', textAlign: 'center', marginTop: 40, padding: '0 20px', lineHeight: 1.6 }}>
+                    Try asking: "What are the main trade-offs in this proposal?" or "Help me think through whether to support or oppose this." Or paste a draft sentence and ask for feedback.
+                  </div>
+                )}
+                {messages.map((m, i) => (
+                  <div key={i} style={{
+                    background: m.role === 'user' ? DK_INPUT : 'transparent',
+                    border: m.role === 'assistant' ? `1px solid ${BORDR}` : 'none',
+                    borderRadius: 4, padding: '10px 14px', fontSize: 13.5, lineHeight: 1.6,
+                    color: m.role === 'user' ? WHITE : LT_TEXT, whiteSpace: 'pre-wrap',
+                    alignSelf: m.role === 'user' ? 'flex-end' : 'stretch',
+                    maxWidth: m.role === 'user' ? '85%' : '100%'
+                  }}>
+                    {m.role === 'assistant' && <div style={{ fontSize: 10, color: MUTED, letterSpacing: 1.5, marginBottom: 4 }}>ASSISTANT</div>}
+                    {m.content}
+                  </div>
+                ))}
+                {isLoading && <div style={{ color: MUTED, fontSize: 13, fontStyle: 'italic' }}>Thinking…</div>}
+                <div ref={chatEndRef} />
+              </div>
+              <div style={{ padding: 12, borderTop: `1px solid ${BORDR}`, display: 'flex', gap: 8 }}>
+                <textarea value={input} onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                  placeholder="Ask the assistant…" rows={2}
+                  style={{ flex: 1, background: DK_INPUT, border: `1px solid ${BORDR}`, color: WHITE, padding: '10px 12px', fontSize: 13, borderRadius: 4, outline: 'none', resize: 'none', fontFamily: 'inherit' }} />
+                <button onClick={handleSend} disabled={isLoading || !input.trim()} style={{
+                  background: input.trim() && !isLoading ? BRIGHT : BORDR,
+                  color: input.trim() && !isLoading ? NAVY : MUTED,
+                  border: 'none', width: 44, borderRadius: 4,
+                  cursor: input.trim() && !isLoading ? 'pointer' : 'not-allowed',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <Send size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Assessment panel */}
+          <div style={{ margin: '0 16px 16px', borderRadius: 6, border: `1px solid ${BORDR}`, background: DK_CARD }}>
+            <button onClick={() => setShowAssessment(s => !s)} style={{
+              width: '100%', background: 'transparent', border: 'none', color: WHITE,
+              padding: '14px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontSize: 14
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Info size={16} color={BRIGHT} />
+                <span style={{ fontFamily: 'Georgia, serif' }}>What this item assesses</span>
+                <span style={{ fontSize: 11, color: MUTED, letterSpacing: 1.5, marginLeft: 10 }}>FOR COMMITTEE REVIEW</span>
+              </div>
+              {showAssessment ? <ChevronUp size={16} color={MUTED} /> : <ChevronDown size={16} color={MUTED} />}
+            </button>
+            {showAssessment && (
+              <div style={{ padding: '0 22px 22px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, fontSize: 13, lineHeight: 1.65 }}>
+                <div>
+                  <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 1.5, marginBottom: 8 }}>SCORED FROM THE FINAL LETTER</div>
+                  <ul style={{ color: LT_TEXT, paddingLeft: 18, margin: 0 }}>
+                    <li style={{ marginBottom: 6 }}>Clarity and force of the position taken.</li>
+                    <li style={{ marginBottom: 6 }}>Accuracy in characterizing the proposal and supporting materials.</li>
+                    <li style={{ marginBottom: 6 }}>Engagement with the strongest counter-considerations, not only the easy ones.</li>
+                    <li style={{ marginBottom: 6 }}>Suitability of tone and register for a public-comment letter.</li>
+                  </ul>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 1.5, marginBottom: 8 }}>SCORED FROM THE TRANSCRIPT</div>
+                  <ul style={{ color: LT_TEXT, paddingLeft: 18, margin: 0 }}>
+                    <li style={{ marginBottom: 6 }}>Quality and specificity of prompts (substantive questions vs. "write this for me").</li>
+                    <li style={{ marginBottom: 6 }}>Identification and correction of any AI errors, omissions, or overreach.</li>
+                    <li style={{ marginBottom: 6 }}>Independence of judgment — did the final letter reflect the student's reasoning, or the assistant's defaults?</li>
+                    <li style={{ marginBottom: 6 }}>Productive use of feedback when the assistant pushed back.</li>
+                  </ul>
+                </div>
+                <div style={{ gridColumn: '1 / 3', display: 'flex', gap: 10, padding: 12, background: DK_INPUT, border: `1px solid ${BORDR}`, borderRadius: 4, marginTop: 4 }}>
+                  <AlertCircle size={18} color={MUTED} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <div style={{ color: MUTED, fontSize: 12.5, lineHeight: 1.6 }}>
+                    <strong style={{ color: LT_TEXT }}>Open psychometric questions:</strong> how to score "quality of prompting" reliably across raters; how to disentangle skill-with-AI from prior AI exposure; whether transcript scoring inflates inter-rater variance beyond acceptable thresholds.
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       ITEM 2 — Financial Literacy: Responsive Revision
+    ══════════════════════════════════════════════════════════════════ */
+    const PROMPT_TEXT = `Some states require public high schools to offer a stand-alone financial literacy course; a smaller number now require students to complete one in order to graduate.
+
+Take a position on whether your state should require a stand-alone financial literacy course for graduation, and defend it. Address at least one strong objection to your position.
+
+200–250 words.`;
+
+    const SAMPLE_INITIAL_DRAFT = `My state should require a financial literacy course for graduation. Many students leave high school without knowing basic financial skills like budgeting, understanding credit, or filing taxes. This leads to problems later in life like credit card debt and not being able to save for important things like college or buying a house. A required course would help fix this problem.
+
+Some people argue that financial literacy should be taught at home by parents. While this would be ideal, not all parents have strong financial skills themselves, so this leaves many students at a disadvantage. Schools can ensure every student gets the same baseline knowledge regardless of their home situation.
+
+The course could cover topics like budgeting, saving, investing, taxes, and student loans. These are practical skills that every adult needs. Math classes don't always cover these specific applications, so a stand-alone course would fill an important gap.
+
+In conclusion, requiring financial literacy would prepare students for adult life much better than the current curriculum does. The benefits clearly outweigh any cost of adding the requirement.`;
+
+    const SAMPLE_FEEDBACK = `1. Your strongest argument — that schools ensure equal baseline access regardless of home situation — is also the most underdeveloped. The objection you address ("parents will teach this at home") is the easy one. A stronger objection is that there is real opportunity cost: something must be removed from the curriculum to add this requirement. You don't engage that question.
+
+2. "This leads to problems later in life like credit card debt" is asserted without evidence. The intuition is reasonable but the causal claim is doing real work in your argument and needs support.
+
+3. The final sentence — "The benefits clearly outweigh any cost" — concedes that there is a cost but doesn't say what it is or actually weigh it. The same pattern appears in paragraph two: you acknowledge a counter-consideration and immediately dismiss it rather than engaging with it.
+
+4. The middle paragraph (topics the course would cover) is descriptive, not argumentative. Listing what financial literacy means doesn't advance your case — every reader already knows.`;
+
+    function ResponsiveRevisionPreview() {
+      const [revisedDraft, setRevisedDraft] = useState(SAMPLE_INITIAL_DRAFT);
+      const [submitted, setSubmitted] = useState(false);
+      const [showAssessment, setShowAssessment] = useState(false);
+      const words = s => s.trim() ? s.trim().split(/\s+/).length : 0;
+      const initialWords = words(SAMPLE_INITIAL_DRAFT);
+      const revisedWords = words(revisedDraft);
+
+      return (
+        <div style={{ background: NAVY, minHeight: '100vh', color: WHITE, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          {/* Top bar */}
+          <div style={{ borderBottom: `1px solid ${BORDR}`, padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, marginBottom: 2 }}>PHASE 3 ITEM EXAMPLE · RESPONSIVE REVISION · REVISING STAGE</div>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: 20, fontWeight: 600 }}>Financial Literacy Graduation Requirement</div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: MUTED, letterSpacing: 1.5 }}>
+              {[['Drafting', false], ['Revising', !submitted], ['Submitted', submitted]].map(([label, active], i) => (
+                <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: active ? BRIGHT : MUTED, display: 'inline-block' }} />
+                  <span style={{ color: active ? WHITE : LT_TEXT }}>{label}</span>
+                  {i < 2 && <span style={{ color: BORDR, margin: '0 2px' }}>·</span>}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Prompt */}
+          <div style={{ padding: '20px 24px', background: DK_CARD, borderBottom: `1px solid ${BORDR}` }}>
+            <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 2, marginBottom: 8 }}>PROMPT</div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 15, lineHeight: 1.7, color: LT_TEXT, whiteSpace: 'pre-line', maxWidth: 920 }}>
+              {PROMPT_TEXT}
+            </div>
+          </div>
+
+          {/* Two-column */}
+          <div style={{ padding: 24, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            {/* Initial draft + feedback */}
+            <div style={{ background: DK_CARD, border: `1px solid ${BORDR}`, borderRadius: 6, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '12px 18px', borderBottom: `1px solid ${BORDR}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: '50%', background: BRIGHT, color: NAVY, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>1</div>
+                  <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2 }}>INITIAL DRAFT</div>
+                  <span style={{ fontSize: 10, color: MUTED, letterSpacing: 1, fontStyle: 'italic' }}>(locked after submission)</span>
+                </div>
+                <div style={{ fontSize: 12, color: MUTED }}>{initialWords} words</div>
+              </div>
+              <div style={{ padding: '18px 22px', fontSize: 14, lineHeight: 1.7, color: LT_TEXT, fontFamily: 'Georgia, serif', whiteSpace: 'pre-wrap', opacity: 0.85, maxHeight: 280, overflow: 'auto' }}>
+                {SAMPLE_INITIAL_DRAFT}
+              </div>
+              <div style={{ borderTop: `1px solid ${BORDR}`, padding: '14px 22px', background: DK_INPUT, flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <Sparkles size={14} color={BRIGHT} />
+                  <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 2 }}>FEEDBACK</div>
+                </div>
+                <div style={{ fontSize: 13, lineHeight: 1.7, color: LT_TEXT, whiteSpace: 'pre-wrap', fontFamily: 'Georgia, serif' }}>
+                  {SAMPLE_FEEDBACK}
+                </div>
+              </div>
+            </div>
+
+            {/* Revised draft */}
+            <div style={{ background: DK_CARD, border: `1px solid ${BORDR}`, borderRadius: 6, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '12px 18px', borderBottom: `1px solid ${BORDR}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: '50%', background: BRIGHT, color: NAVY, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>2</div>
+                  <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2 }}>REVISED DRAFT</div>
+                </div>
+                <div style={{ fontSize: 12, color: revisedWords > 250 ? '#E89A8A' : revisedWords >= 200 ? BRIGHT : MUTED }}>
+                  {revisedWords} / 200–250 words
+                </div>
+              </div>
+              <textarea value={revisedDraft} onChange={e => setRevisedDraft(e.target.value)} disabled={submitted}
+                placeholder="Revise your draft in response to the feedback. You decide which feedback to act on — and which, if any, to reasonably ignore."
+                style={{ flex: 1, minHeight: 520, background: 'transparent', border: 'none', outline: 'none', color: WHITE, padding: '18px 22px', fontSize: 14, lineHeight: 1.75, fontFamily: 'Georgia, serif', resize: 'none' }} />
+              {!submitted ? (
+                <div style={{ padding: '12px 18px', borderTop: `1px solid ${BORDR}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: 11.5, color: MUTED, fontStyle: 'italic', maxWidth: '70%', lineHeight: 1.5 }}>
+                    You may act on some, all, or none of the feedback. Your revision decisions are part of what's scored.
+                  </div>
+                  <button onClick={() => setSubmitted(true)} style={{ background: BRIGHT, color: NAVY, border: 'none', padding: '9px 18px', fontWeight: 600, borderRadius: 4, cursor: 'pointer', fontSize: 13 }}>
+                    Submit final
+                  </button>
+                </div>
+              ) : (
+                <div style={{ padding: '14px 18px', borderTop: `1px solid ${BORDR}`, display: 'flex', alignItems: 'center', gap: 10, color: BRIGHT, fontSize: 13 }}>
+                  <CheckCircle2 size={16} color={BRIGHT} /> Submitted for scoring.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Assessment panel */}
+          <div style={{ background: DK_CARD, margin: '0 24px 24px', borderRadius: 6, border: `1px solid ${BORDR}` }}>
+            <button onClick={() => setShowAssessment(s => !s)} style={{
+              width: '100%', background: 'transparent', border: 'none', color: WHITE,
+              padding: '14px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontSize: 14
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Info size={16} color={BRIGHT} />
+                <span style={{ fontFamily: 'Georgia, serif' }}>What this item assesses</span>
+                <span style={{ fontSize: 11, color: MUTED, letterSpacing: 1.5, marginLeft: 10 }}>FOR COMMITTEE REVIEW</span>
+              </div>
+              {showAssessment ? <ChevronUp size={16} color={MUTED} /> : <ChevronDown size={16} color={MUTED} />}
+            </button>
+            {showAssessment && (
+              <div style={{ padding: '0 22px 22px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 24, fontSize: 13, lineHeight: 1.65 }}>
+                <div>
+                  <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 1.5, marginBottom: 8 }}>INITIAL DRAFT</div>
+                  <ul style={{ color: LT_TEXT, paddingLeft: 18, margin: 0 }}>
+                    <li style={{ marginBottom: 6 }}>Clarity of the position and the supporting reasons.</li>
+                    <li style={{ marginBottom: 6 }}>Engagement with a genuine counter-argument.</li>
+                    <li style={{ marginBottom: 6 }}>Coherence between premises and conclusion.</li>
+                  </ul>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 1.5, marginBottom: 8 }}>REVISION DECISIONS</div>
+                  <ul style={{ color: LT_TEXT, paddingLeft: 18, margin: 0 }}>
+                    <li style={{ marginBottom: 6 }}>Diagnosis: did the student correctly understand what each feedback point identified?</li>
+                    <li style={{ marginBottom: 6 }}>Judgment: did the student act on the feedback that mattered, and reasonably resist feedback that didn't apply?</li>
+                    <li style={{ marginBottom: 6 }}>Avoidance of over-correction (rewriting solid material in response to peripheral feedback).</li>
+                  </ul>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 1.5, marginBottom: 8 }}>NET GAIN</div>
+                  <ul style={{ color: LT_TEXT, paddingLeft: 18, margin: 0 }}>
+                    <li style={{ marginBottom: 6 }}>Was the revised draft genuinely better than the initial — in argument, evidence handling, and prose — or merely longer?</li>
+                    <li style={{ marginBottom: 6 }}>Were new problems introduced during revision?</li>
+                  </ul>
+                </div>
+                <div style={{ gridColumn: '1 / 4', display: 'flex', gap: 10, padding: 12, background: DK_INPUT, border: `1px solid ${BORDR}`, borderRadius: 4, marginTop: 4 }}>
+                  <AlertCircle size={18} color={MUTED} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <div style={{ color: MUTED, fontSize: 12.5, lineHeight: 1.6 }}>
+                    <strong style={{ color: LT_TEXT }}>Open psychometric questions:</strong> feedback quality varies turn-to-turn even from the same model, which introduces measurement noise; "responsiveness to feedback" is a plausible construct but unvalidated; risk of penalizing students who correctly judge that some feedback was wrong.
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       ITEM 3 — Multi-Option Analysis: Explaining Reasoning
+    ══════════════════════════════════════════════════════════════════ */
+    const PASSAGE = `ALSOL is a microcredit program in Mexico that makes small loans to female entrepreneurs who lack the collateral and credit history to secure financing from conventional banks. Borrowers use their business proceeds to repay loans in equal weekly installments and incur no penalty for missed payments other than lack of access to larger loans. Economists Gustavo Barboza and Sandra Trejos analyzed ALSOL data and found that rural borrowers, who mostly make and sell handicrafts, miss payments more often than urban borrowers do, partly because they sell their goods less frequently than they could.`;
+
+    const CLAIM = `Barboza and Trejos claim that this behavior reflects strategic decisions that enable rural women to increase their profits per unit sold.`;
+
+    const OPTIONS = [
+      { letter: 'A', text: 'The cost to rural entrepreneurs to bring their goods to towns with marketplaces is high but largely independent of the number of goods they bring.' },
+      { letter: 'B', text: 'Rural entrepreneurs can typically sell their goods for higher prices in cities than in their home areas, but the number of people selling competing goods tends to be higher in cities.' },
+      { letter: 'C', text: 'Many marketplaces require entrepreneurs to pay marketplace operators a fixed percentage of each day’s proceeds in exchange for permission to sell goods there.' },
+      { letter: 'D', text: 'Due to the lower costs they incur, rural entrepreneurs tend to require smaller initial loans than urban entrepreneurs do.' }
+    ];
+
+    const CLASSIFICATIONS = [
+      { key: 'supports',   label: 'Supports',   color: BRIGHT },
+      { key: 'weakens',    label: 'Weakens',    color: AMBER  },
+      { key: 'irrelevant', label: 'Irrelevant', color: MUTED  }
+    ];
+
+    function MultiOptionAnalysis() {
+      const [responses, setResponses] = useState(
+        OPTIONS.reduce((acc, o) => ({ ...acc, [o.letter]: { classification: null, explanation: '' } }), {})
+      );
+      const [submitted, setSubmitted] = useState(false);
+      const [showAssessment, setShowAssessment] = useState(false);
+
+      function setClassification(letter, cls) {
+        if (submitted) return;
+        setResponses({ ...responses, [letter]: { ...responses[letter], classification: cls } });
+      }
+      function setExplanation(letter, text) {
+        if (submitted) return;
+        setResponses({ ...responses, [letter]: { ...responses[letter], explanation: text } });
+      }
+
+      const allClassified = OPTIONS.every(o => responses[o.letter].classification);
+      const allExplained  = OPTIONS.every(o => responses[o.letter].explanation.trim().length > 0);
+      const canSubmit = allClassified && allExplained;
+
+      return (
+        <div style={{ background: NAVY, minHeight: '100vh', color: WHITE, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          {/* Top bar */}
+          <div style={{ borderBottom: `1px solid ${BORDR}`, padding: '14px 24px' }}>
+            <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, marginBottom: 2 }}>PHASE 3 ITEM EXAMPLE · MULTI-OPTION ANALYSIS</div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 20, fontWeight: 600 }}>Explaining Reasoning</div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '0.85fr 1.15fr', gap: 16, padding: 16, alignItems: 'start' }}>
+            {/* Stimulus (sticky) */}
+            <div style={{ position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ background: DK_CARD, border: `1px solid ${BORDR}`, borderRadius: 6, padding: '20px 24px' }}>
+                <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, marginBottom: 12 }}>PASSAGE</div>
+                <div style={{ fontFamily: 'Georgia, serif', fontSize: 14.5, lineHeight: 1.75, color: LT_TEXT }}>{PASSAGE}</div>
+              </div>
+              <div style={{ background: DK_CARD, border: `1px solid ${BRIGHT}`, borderRadius: 6, padding: '16px 22px' }}>
+                <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 2, marginBottom: 8 }}>THE CLAIM TO EVALUATE</div>
+                <div style={{ fontFamily: 'Georgia, serif', fontSize: 14.5, lineHeight: 1.7, color: WHITE, fontStyle: 'italic' }}>{CLAIM}</div>
+              </div>
+              <div style={{ padding: '12px 18px', background: DK_INPUT, border: `1px solid ${BORDR}`, borderRadius: 6 }}>
+                <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, marginBottom: 8 }}>INSTRUCTIONS</div>
+                <div style={{ fontSize: 13, color: LT_TEXT, lineHeight: 1.65 }}>
+                  For each finding, indicate whether — if true — it would <strong style={{ color: BRIGHT }}>support</strong> the claim, <strong style={{ color: AMBER }}>weaken</strong> the claim, or be <strong style={{ color: WHITE }}>irrelevant</strong> to the claim. Briefly explain your reasoning (1–3 sentences).
+                </div>
+              </div>
+            </div>
+
+            {/* Options */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {OPTIONS.map(opt => {
+                const r = responses[opt.letter];
+                const cls = r.classification ? CLASSIFICATIONS.find(c => c.key === r.classification) : null;
+                return (
+                  <div key={opt.letter} style={{ background: DK_CARD, border: `1px solid ${BORDR}`, borderRadius: 6 }}>
+                    <div style={{ padding: '14px 20px', display: 'flex', gap: 14, alignItems: 'flex-start', borderBottom: `1px solid ${BORDR}` }}>
+                      <div style={{
+                        width: 26, height: 26, borderRadius: '50%',
+                        background: cls ? cls.color : BORDR,
+                        color: cls ? NAVY : MUTED,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontWeight: 700, fontSize: 13, flexShrink: 0, fontFamily: 'Georgia, serif',
+                        transition: 'background 0.2s, color 0.2s'
+                      }}>{opt.letter}</div>
+                      <div style={{ fontSize: 14, color: LT_TEXT, lineHeight: 1.65, fontFamily: 'Georgia, serif' }}>{opt.text}</div>
+                    </div>
+                    <div style={{ padding: '14px 20px 0' }}>
+                      <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, marginBottom: 10 }}>CLASSIFICATION</div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {CLASSIFICATIONS.map(c => {
+                          const active = r.classification === c.key;
+                          return (
+                            <button key={c.key} onClick={() => setClassification(opt.letter, c.key)} disabled={submitted} style={{
+                              flex: 1, background: active ? c.color : 'transparent',
+                              color: active ? NAVY : c.color,
+                              border: `1px solid ${active ? c.color : BORDR}`,
+                              padding: '9px 12px', borderRadius: 4,
+                              cursor: submitted ? 'default' : 'pointer',
+                              fontSize: 12.5, fontWeight: active ? 700 : 500,
+                              letterSpacing: 0.3, transition: 'all 0.15s'
+                            }}>{c.label}</button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div style={{ padding: '14px 20px 18px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2 }}>EXPLANATION</div>
+                        <div style={{ fontSize: 11, color: MUTED }}>{r.explanation.trim() ? r.explanation.trim().split(/\s+/).length : 0} words</div>
+                      </div>
+                      <textarea value={r.explanation} onChange={e => setExplanation(opt.letter, e.target.value)} disabled={submitted}
+                        placeholder={`Explain why finding ${opt.letter}, if true, would ${cls ? cls.label.toLowerCase() : 'support, weaken, or be irrelevant to'} the claim.`}
+                        rows={3} style={{
+                          width: '100%', background: DK_INPUT, border: `1px solid ${BORDR}`,
+                          color: WHITE, padding: '10px 12px', fontSize: 13, lineHeight: 1.6,
+                          borderRadius: 3, outline: 'none', resize: 'vertical', fontFamily: 'Georgia, serif'
+                        }} />
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Submit row */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 4px' }}>
+                <div style={{ fontSize: 12, color: MUTED }}>
+                  {submitted ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: BRIGHT }}>
+                      <CheckCircle2 size={14} color={BRIGHT} /> Submitted for scoring.
+                    </span>
+                  ) : !canSubmit ? (
+                    <span>{OPTIONS.filter(o => !responses[o.letter].classification || !responses[o.letter].explanation.trim()).length} option(s) still need a classification and explanation.</span>
+                  ) : (
+                    <span>All four options classified and explained.</span>
+                  )}
+                </div>
+                <button onClick={() => setSubmitted(true)} disabled={!canSubmit || submitted} style={{
+                  background: canSubmit && !submitted ? BRIGHT : BORDR,
+                  color: canSubmit && !submitted ? NAVY : MUTED,
+                  border: 'none', padding: '10px 22px', fontWeight: 600,
+                  borderRadius: 4, cursor: canSubmit && !submitted ? 'pointer' : 'not-allowed', fontSize: 13
+                }}>Submit final</button>
+              </div>
+            </div>
+          </div>
+
+          {/* Assessment panel */}
+          <div style={{ background: DK_CARD, margin: '0 16px 16px', borderRadius: 6, border: `1px solid ${BORDR}` }}>
+            <button onClick={() => setShowAssessment(s => !s)} style={{
+              width: '100%', background: 'transparent', border: 'none', color: WHITE,
+              padding: '14px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontSize: 14
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Info size={16} color={BRIGHT} />
+                <span style={{ fontFamily: 'Georgia, serif' }}>What this item assesses</span>
+                <span style={{ fontSize: 11, color: MUTED, letterSpacing: 1.5, marginLeft: 10 }}>FOR COMMITTEE REVIEW</span>
+              </div>
+              {showAssessment ? <ChevronUp size={16} color={MUTED} /> : <ChevronDown size={16} color={MUTED} />}
+            </button>
+            {showAssessment && (
+              <div style={{ padding: '0 22px 22px', fontSize: 13, lineHeight: 1.65 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 1.5, marginBottom: 8 }}>WHAT THE ITEM EXPOSES THAT MC DOESN'T</div>
+                    <ul style={{ color: LT_TEXT, paddingLeft: 18, margin: 0 }}>
+                      <li style={{ marginBottom: 6 }}>Whether the student identifies the relevant <em>mechanism</em> (fixed cost producing a bunching incentive) or has merely pattern-matched to surface features.</li>
+                      <li style={{ marginBottom: 6 }}>Whether the student can articulate the difference between a finding that <em>weakens</em> a claim and a finding that is <em>orthogonal</em> to it.</li>
+                      <li style={{ marginBottom: 6 }}>Partial credit when classification differs from the expected answer but the explanation reflects defensible reasoning.</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 1.5, marginBottom: 8 }}>SCORING DIMENSIONS</div>
+                    <ul style={{ color: LT_TEXT, paddingLeft: 18, margin: 0 }}>
+                      <li style={{ marginBottom: 6 }}><strong>Classification accuracy</strong> across the four options.</li>
+                      <li style={{ marginBottom: 6 }}><strong>Explanation quality</strong>: identification of the operative mechanism, precision of language, avoidance of vague restatement.</li>
+                      <li style={{ marginBottom: 6 }}><strong>Internal consistency</strong>: do the four explanations reflect the same understanding of the underlying claim?</li>
+                    </ul>
+                  </div>
+                </div>
+                <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 1.5, marginBottom: 10 }}>EXPECTED CLASSIFICATIONS</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                  {[
+                    { letter: 'A', expected: 'Supports',   color: BRIGHT, why: 'A fixed transport cost is exactly the mechanism that makes bunching sales raise per-unit margins. Most direct supporter of the claim.' },
+                    { letter: 'B', expected: 'Irrelevant', color: MUTED,  why: 'Addresses where to sell (cities vs. home) and competition trade-offs, not selling frequency. Tangential to the bunching mechanism.' },
+                    { letter: 'C', expected: 'Irrelevant (defensibly Weakens)', color: AMBER, why: 'A percentage-of-proceeds fee scales with revenue and creates no bunching incentive of its own. A student arguing "weakens" — because the described cost structure doesn\'t reward less-frequent selling — has a defensible case if they recognize it doesn\'t preclude other fixed costs.' },
+                    { letter: 'D', expected: 'Irrelevant', color: MUTED,  why: 'About loan size differences, not selling frequency. Distinct mechanism, unrelated to the per-unit-profit claim.' }
+                  ].map(e => (
+                    <div key={e.letter} style={{ padding: '10px 12px', background: DK_INPUT, border: `1px solid ${BORDR}`, borderRadius: 4, display: 'flex', gap: 10 }}>
+                      <div style={{ width: 22, height: 22, borderRadius: '50%', background: e.color, color: NAVY, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0, fontFamily: 'Georgia, serif' }}>{e.letter}</div>
+                      <div>
+                        <div style={{ fontSize: 11, color: e.color, letterSpacing: 1, fontWeight: 600, marginBottom: 4 }}>{e.expected.toUpperCase()}</div>
+                        <div style={{ color: LT_TEXT, fontSize: 12, lineHeight: 1.55 }}>{e.why}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 10, padding: 12, background: DK_INPUT, border: `1px solid ${BORDR}`, borderRadius: 4 }}>
+                  <AlertCircle size={18} color={MUTED} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <div style={{ color: MUTED, fontSize: 12.5, lineHeight: 1.6 }}>
+                    <strong style={{ color: LT_TEXT }}>Open psychometric questions:</strong> reliable scoring of free-text explanations at scale (AI-assisted scoring is the obvious candidate but raises validation work of its own); how much weight to assign explanation quality vs. classification accuracy; whether the format advantages students whose schooling emphasizes writing-to-reason over students whose reasoning is sound but unpracticed in articulation.
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       ITEM REGISTRY
+    ══════════════════════════════════════════════════════════════════ */
+    const ITEM_COMPONENTS = {
+      'item-1': PublicCommentItem,
+      'item-2': ResponsiveRevisionPreview,
+      'item-3': MultiOptionAnalysis,
+    };
+
+    const INITIAL_ITEMS = [
+      { id: 'item-1', name: 'Public Comment Letter — Zoning Amendment',    createdOn: '2026-05-15', createdBy: 'Garrett' },
+      { id: 'item-2', name: 'Financial Literacy Graduation Requirement',   createdOn: '2026-05-15', createdBy: 'Garrett' },
+      { id: 'item-3', name: 'Explaining Reasoning',                        createdOn: '2026-05-15', createdBy: 'Garrett' },
+    ];
+
+    function formatDate(iso) {
+      const [y, m, d] = iso.split('-');
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       REVIEW LIST
+    ══════════════════════════════════════════════════════════════════ */
+    function ReviewList({ items, onItemClick, onRename, onHome }) {
+      const [sortKey, setSortKey]   = useState('name');
+      const [sortDir, setSortDir]   = useState('asc');
+      const [editingId, setEditingId] = useState(null);
+      const [editValue, setEditValue] = useState('');
+      const editRef = useRef(null);
+
+      useEffect(() => {
+        if (editingId && editRef.current) editRef.current.focus();
+      }, [editingId]);
+
+      function handleSort(key) {
+        if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        else { setSortKey(key); setSortDir('asc'); }
+      }
+
+      function startEdit(e, item) {
+        e.stopPropagation();
+        setEditingId(item.id);
+        setEditValue(item.name);
+      }
+
+      function commitEdit(id) {
+        if (editValue.trim()) onRename(id, editValue.trim());
+        setEditingId(null);
+      }
+
+      function cancelEdit() { setEditingId(null); }
+
+      const sorted = [...items].sort((a, b) => {
+        const av = a[sortKey] || '', bv = b[sortKey] || '';
+        const cmp = av.localeCompare(bv);
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+
+      function SortIcon({ colKey }) {
+        if (sortKey !== colKey) return <ArrowUpDown size={13} color={BORDR} />;
+        return sortDir === 'asc' ? <ArrowUp2 size={13} color={BRIGHT} /> : <ArrowDown2 size={13} color={BRIGHT} />;
+      }
+
+      const thStyle = (key) => ({
+        padding: '10px 16px', fontSize: 11, letterSpacing: 1.5, color: sortKey === key ? BRIGHT : MUTED,
+        fontWeight: 600, textAlign: 'left', cursor: 'pointer', whiteSpace: 'nowrap',
+        borderBottom: `1px solid ${BORDR}`, background: DK_CARD, userSelect: 'none',
+      });
+
+      return (
+        <div style={{ background: NAVY, minHeight: '100vh', color: WHITE, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          <div style={{ padding: '32px 32px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+            <div>
+              <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, marginBottom: 6 }}>REVIEW</div>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 600, color: WHITE, marginBottom: 4 }}>Items</div>
+              <div style={{ fontSize: 13, color: MUTED }}>{items.length} item{items.length !== 1 ? 's' : ''}</div>
+            </div>
+            <button onClick={onHome} style={{
+              background: 'transparent', border: `1px solid ${BORDR}`, color: LT_TEXT,
+              padding: '8px 14px', borderRadius: 4, cursor: 'pointer', fontSize: 12,
+              display: 'flex', alignItems: 'center', gap: 8, letterSpacing: 0.5,
+              transition: 'border-color 0.15s, color 0.15s, background 0.15s'
+            }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = BRIGHT; e.currentTarget.style.color = WHITE; e.currentTarget.style.background = DK_INPUT; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = BORDR; e.currentTarget.style.color = LT_TEXT; e.currentTarget.style.background = 'transparent'; }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+              Home
+            </button>
+          </div>
+
+          <div style={{ margin: '0 32px 32px', borderRadius: 6, border: `1px solid ${BORDR}`, overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th onClick={() => handleSort('name')} style={{ ...thStyle('name'), width: '55%' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>NAME <SortIcon colKey="name" /></span>
+                  </th>
+                  <th onClick={() => handleSort('createdOn')} style={{ ...thStyle('createdOn'), width: '22%' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>CREATED ON <SortIcon colKey="createdOn" /></span>
+                  </th>
+                  <th onClick={() => handleSort('createdBy')} style={{ ...thStyle('createdBy'), width: '23%' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>CREATED BY <SortIcon colKey="createdBy" /></span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((item, i) => (
+                  <tr key={item.id} onClick={() => editingId !== item.id && onItemClick(item.id)}
+                    style={{ borderBottom: i < sorted.length - 1 ? `1px solid ${BORDR}` : 'none', cursor: editingId === item.id ? 'default' : 'pointer', transition: 'background 0.12s' }}
+                    onMouseEnter={e => { if (editingId !== item.id) e.currentTarget.style.background = DK_INPUT; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+
+                    {/* Name cell */}
+                    <td style={{ padding: '14px 16px' }}>
+                      {editingId === item.id ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={e => e.stopPropagation()}>
+                          <input ref={editRef} value={editValue} onChange={e => setEditValue(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') commitEdit(item.id); if (e.key === 'Escape') cancelEdit(); }}
+                            style={{ flex: 1, background: DK_INPUT, border: `1px solid ${BRIGHT}`, color: WHITE, padding: '6px 10px', borderRadius: 4, outline: 'none', fontSize: 14, fontFamily: 'Georgia, serif' }} />
+                          <button onClick={() => commitEdit(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: BRIGHT, display: 'flex' }}>
+                            <CheckIcon size={14} color={BRIGHT} />
+                          </button>
+                          <button onClick={cancelEdit} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: MUTED, display: 'flex' }}>
+                            <XIcon size={14} color={MUTED} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{ fontFamily: 'Georgia, serif', fontSize: 14.5, color: WHITE }}>{item.name}</span>
+                          <button onClick={e => startEdit(e, item)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', opacity: 0.4, color: MUTED, display: 'flex', transition: 'opacity 0.15s' }}
+                            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                            onMouseLeave={e => e.currentTarget.style.opacity = '0.4'}>
+                            <Pencil size={13} color={MUTED} />
+                          </button>
+                        </div>
+                      )}
+                    </td>
+
+                    <td style={{ padding: '14px 16px', fontSize: 13, color: LT_TEXT }}>{formatDate(item.createdOn)}</td>
+                    <td style={{ padding: '14px 16px', fontSize: 13, color: LT_TEXT }}>{item.createdBy}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       ITEM VIEWER WRAPPER
+    ══════════════════════════════════════════════════════════════════ */
+    function ItemViewer({ itemId, itemName, onBack }) {
+      const ItemComponent = ITEM_COMPONENTS[itemId];
+      return (
+        <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          {/* Back bar */}
+          <div style={{ background: DK_CARD, borderBottom: `1px solid ${BORDR}`, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button onClick={onBack} style={{
+              background: 'none', border: 'none', cursor: 'pointer', color: BRIGHT,
+              display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '4px 8px 4px 2px',
+              borderRadius: 4, transition: 'background 0.12s'
+            }}
+              onMouseEnter={e => e.currentTarget.style.background = BORDR}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+              <ArrowLeft size={13} color={BRIGHT} />
+              <span style={{ letterSpacing: 0.5 }}>Back to Review</span>
+            </button>
+            <span style={{ color: BORDR }}>·</span>
+            <span style={{ fontSize: 12, color: MUTED, fontFamily: 'Georgia, serif' }}>{itemName}</span>
+          </div>
+          <ItemComponent />
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       LANDING PAGE
+    ══════════════════════════════════════════════════════════════════ */
+    function LandingPage({ onReview }) {
+      const [hoveredCard, setHoveredCard] = useState(null);
+
+      const cardBase = {
+        background: DK_CARD, border: `1px solid ${BORDR}`, borderRadius: 8,
+        padding: '40px 36px', cursor: 'pointer', transition: 'border-color 0.2s, background 0.2s',
+        display: 'flex', flexDirection: 'column', gap: 14, userSelect: 'none'
+      };
+
+      return (
+        <div style={{
+          background: NAVY, minHeight: '100vh', color: WHITE,
+          fontFamily: 'system-ui, -apple-system, sans-serif',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+        }}>
+          {/* Logo + wordmark */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+            <FlaskConical size={32} color={BRIGHT} />
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 32, fontWeight: 600, letterSpacing: 0.5, color: WHITE }}>Lab Bench</div>
+          </div>
+          <div style={{ fontSize: 13, color: MUTED, letterSpacing: 2, marginBottom: 56 }}>NEW ASSESSMENT LAB</div>
+
+          {/* Action cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, width: '100%', maxWidth: 680, padding: '0 24px' }}>
+
+            {/* Invent card (coming soon) */}
+            <div
+              style={{ ...cardBase, opacity: 0.45, cursor: 'not-allowed', borderColor: BORDR }}
+            >
+              <div style={{ width: 44, height: 44, borderRadius: 8, background: NAVY, border: `1px solid ${BORDR}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9"/>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+              </div>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: 22, fontWeight: 600, color: WHITE }}>Invent</div>
+              <div style={{ fontSize: 13, color: LT_TEXT, lineHeight: 1.6 }}>
+                Generate new assessment item prototypes with AI assistance.
+              </div>
+              <div style={{ marginTop: 8, fontSize: 11, color: MUTED, letterSpacing: 1.5 }}>COMING SOON</div>
+            </div>
+
+            {/* Review card */}
+            <div
+              style={{
+                ...cardBase,
+                borderColor: hoveredCard === 'review' ? BRIGHT : BORDR,
+                background: hoveredCard === 'review' ? DK_INPUT : DK_CARD,
+              }}
+              onClick={onReview}
+              onMouseEnter={() => setHoveredCard('review')}
+              onMouseLeave={() => setHoveredCard(null)}
+            >
+              <div style={{ width: 44, height: 44, borderRadius: 8, background: NAVY, border: `1px solid ${BORDR}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={BRIGHT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                </svg>
+              </div>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: 22, fontWeight: 600, color: WHITE }}>Review</div>
+              <div style={{ fontSize: 13, color: LT_TEXT, lineHeight: 1.6 }}>
+                Browse and interact with item prototypes. Sort, rename, and open items for committee review.
+              </div>
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: hoveredCard === 'review' ? BRIGHT : MUTED, transition: 'color 0.2s' }}>
+                Open Review <span style={{ fontSize: 16 }}>→</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       ROOT APP
+    ══════════════════════════════════════════════════════════════════ */
+    function App() {
+      const [view, setView]   = useState('landing');   // 'landing' | 'review' | 'item'
+      const [activeItemId, setActiveItemId] = useState(null);
+      const [items, setItems] = useState(INITIAL_ITEMS);
+
+      function openItem(id) { setActiveItemId(id); setView('item'); }
+      function goReview()    { setView('review'); setActiveItemId(null); }
+      function goLanding()   { setView('landing'); setActiveItemId(null); }
+
+      function renameItem(id, newName) {
+        setItems(prev => prev.map(it => it.id === id ? { ...it, name: newName } : it));
+      }
+
+      const activeItem = items.find(it => it.id === activeItemId);
+
+      if (view === 'landing') return <LandingPage onReview={goReview} />;
+      if (view === 'review')  return <ReviewList items={items} onItemClick={openItem} onRename={renameItem} onHome={goLanding} />;
+      if (view === 'item')    return <ItemViewer itemId={activeItemId} itemName={activeItem?.name} onBack={goReview} />;
+      return null;
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
