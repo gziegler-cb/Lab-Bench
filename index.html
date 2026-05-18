@@ -35,10 +35,10 @@
     const AMBER   = '#E2A458';
 
     /* ── Minimal SVG icon components ────────────────────────────────── */
-    function Svg({ size, color, children, viewBox = '0 0 24 24', fill = 'none', style }) {
+    function Svg({ size, color, children, viewBox = '0 0 24 24', fill = 'none', strokeWidth = 2, style }) {
       return (
         <svg width={size} height={size} viewBox={viewBox} fill={fill}
-             stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+             stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"
              style={{ flexShrink: 0, ...style }}>
           {children}
         </svg>
@@ -61,6 +61,12 @@
     const CheckIcon   = ({size=14,color='currentColor'}) => <Svg size={size} color={color}><polyline points="20 6 9 17 4 12"/></Svg>;
     const XIcon       = ({size=14,color='currentColor'}) => <Svg size={size} color={color}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Svg>;
     const FlaskConical= ({size=28,color='currentColor'}) => <Svg size={size} color={color}><path d="M14 2v6l3.5 10H6.5L10 8V2"/><line x1="8.5" y1="2" x2="15.5" y2="2"/></Svg>;
+    const Check       = ({size=14,color='currentColor',strokeWidth=2}) => <Svg size={size} color={color} strokeWidth={strokeWidth}><polyline points="20 6 9 17 4 12"/></Svg>;
+    const X           = ({size=14,color='currentColor',strokeWidth=2}) => <Svg size={size} color={color} strokeWidth={strokeWidth}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Svg>;
+    const ArrowRight  = ({size=16,color='currentColor'}) => <Svg size={size} color={color}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></Svg>;
+    const RotateCcw   = ({size=14,color='currentColor'}) => <Svg size={size} color={color}><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></Svg>;
+    const Lock        = ({size=11,color='currentColor'}) => <Svg size={size} color={color}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Svg>;
+    const BookOpenCheck=({size=18,color='currentColor'}) => <Svg size={size} color={color}><path d="M8 3H2v15h7c1.7 0 3 1.3 3 3V7c0-2.2-1.8-4-4-4Z"/><path d="m16 12 2 2 4-4"/><path d="M12 21V7c0-2.2 1.8-4 4-4h6v11h-6"/></Svg>;
 
     /* ══════════════════════════════════════════════════════════════════
        ITEM 1 — Public Comment Letter (AI-Mediated Task)
@@ -701,18 +707,354 @@ In conclusion, requiring financial literacy would prepare students for adult lif
     }
 
     /* ══════════════════════════════════════════════════════════════════
+       ITEM 4 — Source Evaluation for Research
+    ══════════════════════════════════════════════════════════════════ */
+    const RESEARCH_Q = 'Should the U.S. government increase funding for crewed missions to Mars over the next decade?';
+    const STANDARDS  = 'CCSS.ELA-Literacy.W.11-12.7 · W.11-12.8';
+
+    const SOURCES = [
+      { id: 's1', category: 'relevant_reliable', title: 'Crewed Mars Exploration: Cost Estimates, Schedule Risk, and Technical Readiness', author: 'U.S. Government Accountability Office', publisher: 'GAO · Report to Congressional Requesters', year: 2024, type: 'Government Report', length: '78 pages',
+        abstract: 'This report analyzes projected costs, schedule risks, and technology readiness levels for a potential crewed Mars program through 2035. GAO examined contracting structures, dependencies on commercial launch providers, and budget scenarios under three appropriation levels. The report identifies six critical technologies whose readiness will determine feasibility within the decade.',
+        rationale: 'Authoritative government analysis with no advocacy stake. Provides cost figures and technical-risk assessment any serious argument on this question must engage with — whether you ultimately support or oppose increased funding.' },
+      { id: 's2', category: 'relevant_reliable', title: 'Decadal Budget Pathways for Human Mars Exploration: A Comparative Analysis', author: 'Reyes, M., Karlsson, A., & Okonkwo, P.', publisher: 'Space Policy (peer-reviewed)', year: 2023, type: 'Peer-Reviewed Article', length: '24 pages',
+        abstract: 'This article evaluates four decadal funding scenarios for U.S. human Mars exploration against historical analogs (Apollo, ISS) and current geopolitical context. The authors model cost-per-capability trade-offs and identify funding cliffs that historically correlate with program cancellation, suggesting a minimum sustained appropriation below which crewed Mars goals become non-credible.',
+        rationale: 'Peer-reviewed analysis of historical funding patterns and the conditions under which crewed exploration programs survive or collapse. Gives the essay a quantitative backbone and a defensible academic citation.' },
+      { id: 's3', category: 'relevant_reliable', title: 'Beyond Low Earth Orbit: Weighing the Returns of a National Crewed Mars Initiative', author: 'Hammond, K., & Vasquez, R.', publisher: 'Brookings Institution', year: 2024, type: 'Policy Report', length: '42 pages',
+        abstract: 'This report weighs the strategic, scientific, and economic returns of sustained national investment in crewed Mars exploration against opportunity costs in robotic exploration, Earth science, and other discretionary priorities. The authors argue both sides and conclude with conditions under which a major appropriation would be defensible.',
+        rationale: 'A non-partisan policy report that explicitly weighs both sides of the funding question. Argumentative essays benefit from sources that have already mapped the strongest objections to whichever side you take.' },
+      { id: 's4', category: 'relevant_reliable', title: "Americans' Views on Space Exploration Priorities, 2024", author: 'Pew Research Center', publisher: 'Pew Research Center', year: 2024, type: 'Survey Report', length: '36 pages',
+        abstract: 'A nationally representative survey of 10,701 U.S. adults examines public attitudes toward NASA priorities, including crewed Mars exploration, asteroid monitoring, and climate observation. The report breaks down support by age, education, and prior science engagement, and tracks changes from comparable 2018 and 2021 surveys.',
+        rationale: 'Public-opinion data from a methodologically rigorous nonpartisan source. Lets the essay speak to political feasibility — a real consideration in any policy argument about discretionary federal spending.' },
+      { id: 's5', category: 'relevant_unreliable', title: 'The Case for Mars: Why America Must Lead the Next Era of Human Exploration', author: 'Coalition for Human Spaceflight', publisher: 'Coalition for Human Spaceflight', year: 2024, type: 'White Paper', length: '28 pages',
+        abstract: 'This white paper argues that the United States must dramatically increase funding for crewed Mars missions over the next decade to maintain strategic leadership and economic competitiveness. The Coalition presents a roadmap for a 2035 landing under sustained federal investment. Funding sources for the Coalition are not disclosed.',
+        rationale: "Squarely on topic, but the publisher has a direct stake in the policy outcome and does not disclose its funding sources. A reader can dismiss its analysis as motivated. Use it to understand the pro-funding position; cite Brookings or GAO instead." },
+      { id: 's6', category: 'relevant_unreliable', title: "Comments on 'NASA Requests $4B Increase for Mars Exploration'", author: 'Various users (anonymous)', publisher: 'Major News Site · Comment Section', year: 2024, type: 'Reader Comments', length: '247 comments',
+        abstract: "Top-rated comments include: 'Finally, a real space program again' (SpaceFan1971, 89 upvotes); 'Why are we spending this when we can't fix our roads?' (AnonReader, 76 upvotes); 'The whole thing is rigged to benefit contractors' (deleted user, 54 upvotes). Most contributors are unverified.",
+        rationale: "Reader opinions can be evidence of what people think, but anonymous comments without verifiable identities can't be cited as authoritative analysis. They tell you nothing reliable about whether increased funding is good policy." },
+      { id: 's7', category: 'irrelevant_reliable', title: 'The Slide-Rule Women: Recovering the Mathematicians Who Mapped the Moon', author: 'Hartwell, J.', publisher: 'The New Yorker', year: 2023, type: 'Long-Form Feature', length: '11,200 words',
+        abstract: 'A narrative reconstruction of the careers of three women mathematicians who computed trajectories for the Apollo missions, drawing on newly opened archival sources and interviews with surviving colleagues. The piece traces both the technical work and the institutional barriers these women navigated at NASA between 1962 and 1972.',
+        rationale: "Excellent journalism from a prestigious outlet — but the subject is a different historical program. Source prestige isn't a substitute for topical relevance. This belongs in an essay about the human stories behind Apollo, not a forward-looking funding argument." },
+      { id: 's8', category: 'irrelevant_reliable', title: "When the Science Is Almost Right: Hollywood's Uneasy Relationship with Astrophysics", author: 'Lin, D.', publisher: 'Scientific American · Columns', year: 2024, type: 'Magazine Column', length: '2,400 words',
+        abstract: 'A working astrophysicist examines how feature films handle relativity, orbital mechanics, and space travel — what they get right, what they get wrong, and why the errors that bother scientists are often invisible to general audiences. Recent science-fiction releases anchor the discussion.',
+        rationale: "Reliable outlet, but the piece is about how films depict science, not about whether to fund crewed Mars missions. The relevance test is whether a source bears on the specific question; this one doesn't." },
+      { id: 's9', category: 'irrelevant_unreliable', title: "10 SHOCKING Things NASA Doesn't Want You to Know About Mars", author: 'Admin', publisher: 'TruthOrbit.net', year: 2024, type: 'Web Article', length: '~800 words',
+        abstract: 'From alleged "face" formations to claims of underground civilizations, this article counts down "top ten" assertions the website says have been suppressed. No citations to peer-reviewed sources; multiple claims contradict established scientific consensus. Sidebar links to UFO sighting forums.',
+        rationale: 'No authorial accountability, no citations, content contradicts established scientific consensus. The publisher has no editorial standards to violate. Nothing about this source belongs in a college-level argumentative essay.' },
+      { id: 's10', category: 'irrelevant_unreliable', title: 'What I think I saw through my 8-inch dob last night — Mars feature?', author: 'u/backyardstars and 43 commenters', publisher: 'r/amateurastronomy thread', year: 2024, type: 'Forum Discussion', length: '43 replies',
+        abstract: 'OP describes an unusual surface feature observed during a Mars opposition with an 8-inch Dobsonian telescope. Commenters speculate about atmospheric distortion, optical artifacts, and personal observation logs. No verified observers or institutional sources participate in the thread.',
+        rationale: "Amateur observation speculation without verified observers or institutional review. Even if interesting on its own terms, it's the wrong kind of evidence for a policy argument about federal spending priorities." }
+    ];
+
+    const SE_KEYED_IDS = SOURCES.filter(s => s.category === 'relevant_reliable').map(s => s.id);
+    const SE_CATEGORY_LABELS = {
+      relevant_unreliable:   'Relevant · Unreliable',
+      irrelevant_reliable:   'Reliable · Off-topic',
+      irrelevant_unreliable: 'Off-topic · Unreliable'
+    };
+    const SE_INTERPRETATIONS = {
+      4: 'Excellent. Every source you chose contributes to a strong essay on this question.',
+      3: 'Strong. Three of your four sources are well-matched to the task.',
+      2: 'Partial. Half of your selections work for this essay; the rest fall short for the reasons explained below.',
+      1: 'One of your selections fits the task. Review the rationales to see how the other choices fall short.',
+      0: 'None of your selections is well-matched to the task. The rationales below explain how to evaluate sources against task, purpose, and audience.'
+    };
+
+    function SE_Pill({ children, color }) {
+      return (
+        <span style={{
+          fontSize: 10.5, color: color || MUTED,
+          border: `1px solid ${color || BORDR}`,
+          padding: '2px 9px', borderRadius: 999, letterSpacing: 0.4,
+          whiteSpace: 'nowrap', lineHeight: 1.6, display: 'inline-block'
+        }}>{children}</span>
+      );
+    }
+
+    function SE_SourceCard({ source, children, borderColor, opacity, cursor, onClick, locked }) {
+      return (
+        <div onClick={locked ? undefined : onClick} style={{
+          background: DK_CARD, border: `1.5px solid ${borderColor || BORDR}`, borderRadius: 6,
+          padding: '16px 18px', opacity: opacity ?? 1, cursor: cursor || 'default',
+          transition: 'border-color 0.15s, opacity 0.15s, background 0.15s', position: 'relative'
+        }}>
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 15.5, fontWeight: 600, color: WHITE, lineHeight: 1.35, marginBottom: 6, paddingRight: 28 }}>
+              {source.title}
+            </div>
+            <div style={{ fontSize: 12, color: MUTED, lineHeight: 1.5 }}>
+              {source.author} · <span style={{ color: LT_TEXT }}>{source.publisher}</span> · {source.year}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+            <SE_Pill>{source.type}</SE_Pill>
+            <SE_Pill>{source.length}</SE_Pill>
+          </div>
+          <div style={{ fontSize: 12.5, color: LT_TEXT, lineHeight: 1.65, fontFamily: 'Georgia, serif' }}>
+            {source.abstract}
+          </div>
+          {children}
+        </div>
+      );
+    }
+
+    function SE_Landing({ onBegin }) {
+      const [showAssessment, setShowAssessment] = useState(false);
+      return (
+        <div>
+          <div style={{ borderBottom: `1px solid ${BORDR}`, padding: '14px 24px' }}>
+            <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, marginBottom: 2 }}>ASSESSMENT ITEM · SOURCE EVALUATION FOR RESEARCH</div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 20, fontWeight: 600 }}>Selecting Sources for an Argumentative Essay</div>
+          </div>
+          <div style={{ padding: '40px 24px', maxWidth: 880, margin: '0 auto' }}>
+            <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 2, marginBottom: 12 }}>RESEARCH QUESTION</div>
+            <div style={{ background: DK_CARD, border: `1px solid ${BRIGHT}`, borderRadius: 6, padding: '32px 36px', marginBottom: 28 }}>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 600, lineHeight: 1.35, color: WHITE }}>{RESEARCH_Q}</div>
+            </div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 15.5, color: LT_TEXT, lineHeight: 1.75, marginBottom: 32 }}>
+              You are writing a 1,200–1,500-word argumentative essay on the question above. When you click Begin, you will see ten sources from a school library database. Select the four sources that would best support your essay.
+            </div>
+            <button onClick={onBegin} style={{
+              background: BRIGHT, color: NAVY, border: 'none', padding: '12px 26px', fontWeight: 700,
+              borderRadius: 4, cursor: 'pointer', fontSize: 14, display: 'inline-flex', alignItems: 'center', gap: 10, letterSpacing: 0.3
+            }}>
+              Begin <ArrowRight size={16} color={NAVY} />
+            </button>
+            <div style={{ marginTop: 40, fontSize: 11, color: MUTED, letterSpacing: 1.5 }}>{STANDARDS}</div>
+          </div>
+
+          <div style={{ background: DK_CARD, margin: '0 24px 24px', borderRadius: 6, border: `1px solid ${BORDR}` }}>
+            <button onClick={() => setShowAssessment(s => !s)} style={{
+              width: '100%', background: 'transparent', border: 'none', color: WHITE,
+              padding: '14px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontSize: 14
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Info size={16} color={BRIGHT} />
+                <span style={{ fontFamily: 'Georgia, serif' }}>What this item assesses</span>
+                <span style={{ fontSize: 11, color: MUTED, letterSpacing: 1.5, marginLeft: 10 }}>FOR COMMITTEE REVIEW</span>
+              </div>
+              {showAssessment ? <ChevronUp size={16} color={MUTED} /> : <ChevronDown size={16} color={MUTED} />}
+            </button>
+            {showAssessment && (
+              <div style={{ padding: '0 22px 22px', fontSize: 13, lineHeight: 1.65 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 1.5, marginBottom: 8 }}>CONSTRUCT</div>
+                    <div style={{ color: LT_TEXT }}>
+                      Evaluating sources against the specific demands of <em>task</em>, <em>purpose</em>, and <em>audience</em>: discriminating relevance from reliability, recognizing publisher prestige as insufficient grounds for citation, and identifying advocacy stakes that compromise an otherwise on-topic source.
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 1.5, marginBottom: 8 }}>SOURCE POOL DESIGN</div>
+                    <div style={{ color: LT_TEXT }}>
+                      Ten sources crossed on two dimensions (relevance × reliability): 4 relevant-and-reliable (keyed), 2 relevant-but-unreliable (highest-discrimination distractors), 2 reliable-but-off-topic (traps prestige-scorers), 2 off-topic-and-unreliable (sanity-check baseline).
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 1.5, marginBottom: 8 }}>SCORING</div>
+                    <div style={{ color: LT_TEXT }}>
+                      Student selects exactly four sources. One point per keyed source correctly selected; maximum four. Because selections are capped at four, the rule symmetrically penalizes omissions and false alarms — picking a wrong source means leaving a right one out. No distractor-specific weighting.
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 1.5, marginBottom: 8 }}>WHY NOT MULTIPLE CHOICE</div>
+                    <div style={{ color: LT_TEXT }}>
+                      Single-select MC can ask "which source is most reliable" but cannot test the actual research operation: comparing a set, applying both filters at once, and judging trade-offs across an assembled list. This item assesses the operation itself.
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 10, padding: 12, background: DK_INPUT, border: `1px solid ${BORDR}`, borderRadius: 4 }}>
+                  <AlertCircle size={18} color={MUTED} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <div style={{ color: MUTED, fontSize: 12.5, lineHeight: 1.6 }}>
+                    <strong style={{ color: LT_TEXT }}>Open psychometric questions:</strong> the highest-discrimination distractors are the two relevant-but-unreliable items; students who filter only for relevance will fail there. The 2-of-2 reliable-but-off-topic pair is calibrated to be similarly tempting on prestige alone. Validation work should confirm both intended discrimination patterns hold across the target population.
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function SE_SelectScreen({ selectedIds, onToggle, onSubmit }) {
+      const selectedCount = selectedIds.size;
+      const atCap = selectedCount === 4;
+      return (
+        <div>
+          <div style={{ position: 'sticky', top: 0, zIndex: 10, background: NAVY, borderBottom: `1px solid ${BORDR}`, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <BookOpenCheck size={18} color={BRIGHT} />
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: 17, fontWeight: 600 }}>School Library Database</div>
+              <span style={{ color: MUTED, fontSize: 13 }}>· 10 results</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ fontSize: 13, color: atCap ? BRIGHT : LT_TEXT }}>
+                <span style={{ fontWeight: 600 }}>{selectedCount}</span>
+                <span style={{ color: MUTED }}> of 4 selected</span>
+              </div>
+              <button onClick={onSubmit} disabled={!atCap} style={{
+                background: atCap ? BRIGHT : BORDR, color: atCap ? NAVY : MUTED,
+                border: 'none', padding: '9px 22px', fontWeight: 700, borderRadius: 4,
+                cursor: atCap ? 'pointer' : 'not-allowed', fontSize: 13, letterSpacing: 0.3
+              }}>Submit</button>
+            </div>
+          </div>
+
+          <div style={{ padding: '18px 24px 8px', maxWidth: 1200, margin: '0 auto' }}>
+            <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, marginBottom: 6 }}>RESEARCH QUESTION</div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 16, color: LT_TEXT, fontStyle: 'italic', lineHeight: 1.55 }}>{RESEARCH_Q}</div>
+          </div>
+
+          <div style={{ padding: '20px 24px 24px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14, maxWidth: 1200, margin: '0 auto' }}>
+            {SOURCES.map(source => {
+              const isSelected = selectedIds.has(source.id);
+              const isLocked = atCap && !isSelected;
+              return (
+                <div key={source.id} style={{ position: 'relative' }}>
+                  <SE_SourceCard source={source}
+                    borderColor={isSelected ? BRIGHT : BORDR}
+                    opacity={isLocked ? 0.38 : 1}
+                    cursor={isLocked ? 'not-allowed' : 'pointer'}
+                    locked={isLocked}
+                    onClick={() => onToggle(source.id)} />
+                  <div style={{
+                    position: 'absolute', top: 14, right: 14, width: 22, height: 22, borderRadius: 4,
+                    border: `1.5px solid ${isSelected ? BRIGHT : BORDR}`,
+                    background: isSelected ? BRIGHT : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none'
+                  }}>
+                    {isSelected && <Check size={14} color={NAVY} strokeWidth={3} />}
+                    {isLocked && <Lock size={11} color={MUTED} />}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ padding: '4px 24px 28px', fontSize: 11, color: MUTED, letterSpacing: 1.5, textAlign: 'center' }}>{STANDARDS}</div>
+        </div>
+      );
+    }
+
+    function SE_ScoreScreen({ selectedIds, onReset }) {
+      const score = SE_KEYED_IDS.filter(id => selectedIds.has(id)).length;
+      const wrongPicks = SOURCES.filter(s => selectedIds.has(s.id) && s.category !== 'relevant_reliable');
+      const interpretation = SE_INTERPRETATIONS[score];
+      return (
+        <div>
+          <div style={{ borderBottom: `1px solid ${BORDR}`, padding: '14px 24px' }}>
+            <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, marginBottom: 2 }}>ASSESSMENT ITEM · SOURCE EVALUATION FOR RESEARCH</div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 20, fontWeight: 600 }}>Results</div>
+          </div>
+
+          <div style={{ padding: '32px 24px 24px', maxWidth: 1100, margin: '0 auto' }}>
+            <div style={{ background: DK_CARD, border: `1px solid ${BRIGHT}`, borderRadius: 6, padding: '32px 36px', marginBottom: 32, display: 'flex', alignItems: 'center', gap: 32 }}>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: 72, fontWeight: 600, color: WHITE, lineHeight: 1, letterSpacing: -1 }}>
+                {score}<span style={{ color: MUTED, fontSize: 36, fontWeight: 400 }}> / 4</span>
+              </div>
+              <div style={{ flex: 1, fontFamily: 'Georgia, serif', fontSize: 17, color: LT_TEXT, lineHeight: 1.55 }}>{interpretation}</div>
+            </div>
+
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ fontSize: 11, color: BRIGHT, letterSpacing: 2, marginBottom: 14 }}>THE FOUR KEYED SOURCES</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {SE_KEYED_IDS.map(id => {
+                  const source = SOURCES.find(s => s.id === id);
+                  const picked = selectedIds.has(id);
+                  return (
+                    <div key={id} style={{ position: 'relative' }}>
+                      <SE_SourceCard source={source} borderColor={picked ? BRIGHT : BORDR} opacity={picked ? 1 : 0.7}>
+                        <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${BORDR}`, fontSize: 12.5, color: LT_TEXT, lineHeight: 1.65 }}>
+                          <span style={{ color: BRIGHT, fontWeight: 600 }}>Why this is keyed: </span>{source.rationale}
+                        </div>
+                      </SE_SourceCard>
+                      <div style={{
+                        position: 'absolute', top: 14, right: 14, width: 24, height: 24, borderRadius: '50%',
+                        background: picked ? BRIGHT : 'transparent', border: `1.5px solid ${picked ? BRIGHT : MUTED}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        {picked
+                          ? <Check size={14} color={NAVY} strokeWidth={3} />
+                          : <X size={14} color={MUTED} strokeWidth={2.5} />}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {wrongPicks.length > 0 && (
+              <div style={{ marginBottom: 32 }}>
+                <div style={{ fontSize: 11, color: AMBER, letterSpacing: 2, marginBottom: 14 }}>
+                  {wrongPicks.length === 1 ? 'YOUR SELECTION TO RECONSIDER' : 'YOUR SELECTIONS TO RECONSIDER'}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {wrongPicks.map(source => (
+                    <div key={source.id} style={{ position: 'relative' }}>
+                      <SE_SourceCard source={source} borderColor={AMBER}>
+                        <div style={{ marginTop: 12, marginBottom: 4 }}>
+                          <SE_Pill color={AMBER}>{SE_CATEGORY_LABELS[source.category]}</SE_Pill>
+                        </div>
+                        <div style={{ marginTop: 10, paddingTop: 12, borderTop: `1px solid ${BORDR}`, fontSize: 12.5, color: LT_TEXT, lineHeight: 1.65 }}>
+                          <span style={{ color: AMBER, fontWeight: 600 }}>Why this wasn't the best choice: </span>{source.rationale}
+                        </div>
+                      </SE_SourceCard>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8, paddingBottom: 16 }}>
+              <button onClick={onReset} style={{
+                background: 'transparent', color: LT_TEXT, border: `1px solid ${BORDR}`,
+                padding: '11px 24px', fontWeight: 500, borderRadius: 4, cursor: 'pointer',
+                fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 10
+              }}>
+                <RotateCcw size={14} color={LT_TEXT} /> Try again
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function SourceEvaluationItem() {
+      const [screen, setScreen] = useState('landing');
+      const [selectedIds, setSelectedIds] = useState(new Set());
+
+      function toggle(id) {
+        setSelectedIds(prev => {
+          const next = new Set(prev);
+          if (next.has(id)) next.delete(id);
+          else if (next.size < 4) next.add(id);
+          return next;
+        });
+      }
+      function reset() { setSelectedIds(new Set()); setScreen('select'); }
+
+      return (
+        <div style={{ background: NAVY, minHeight: '100vh', color: WHITE, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          {screen === 'landing' && <SE_Landing onBegin={() => setScreen('select')} />}
+          {screen === 'select'  && <SE_SelectScreen selectedIds={selectedIds} onToggle={toggle} onSubmit={() => setScreen('score')} />}
+          {screen === 'score'   && <SE_ScoreScreen selectedIds={selectedIds} onReset={reset} />}
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
        ITEM REGISTRY
     ══════════════════════════════════════════════════════════════════ */
     const ITEM_COMPONENTS = {
       'item-1': PublicCommentItem,
       'item-2': ResponsiveRevisionPreview,
       'item-3': MultiOptionAnalysis,
+      'item-4': SourceEvaluationItem,
     };
 
     const INITIAL_ITEMS = [
       { id: 'item-1', name: 'Public Comment Letter — Zoning Amendment',    createdOn: '2026-05-15', createdBy: 'Garrett' },
       { id: 'item-2', name: 'Financial Literacy Graduation Requirement',   createdOn: '2026-05-15', createdBy: 'Garrett' },
       { id: 'item-3', name: 'Explaining Reasoning',                        createdOn: '2026-05-15', createdBy: 'Garrett' },
+      { id: 'item-4', name: 'Selecting Sources for an Argumentative Essay', createdOn: '2026-05-20', createdBy: 'Jen' },
     ];
 
     function formatDate(iso) {
