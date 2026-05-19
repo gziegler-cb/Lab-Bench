@@ -1363,12 +1363,19 @@ The shift will be uncomfortable for an industry, a clinical profession, and a re
       'item-5': ArgumentAudit,
     };
 
+    const PROGRAMS = [
+      { id: 'sat-rw',     label: 'SAT RW',             tag: 'Reading & Writing' },
+      { id: 'sat-math',   label: 'SAT Math',           tag: 'Math' },
+      { id: 'sat-ds',     label: 'SAT Durable Skills', tag: 'Durable Skills' },
+      { id: 'other',      label: 'Other',              tag: 'Unsorted' },
+    ];
+
     const INITIAL_ITEMS = [
-      { id: 'item-1', name: 'AI-Mediated Multisource Writing (Zoning Amendment)', createdOn: '2026-05-15', createdBy: 'Garrett' },
-      { id: 'item-2', name: 'Responsive Revision (Financial Literacy)',           createdOn: '2026-05-15', createdBy: 'Garrett' },
-      { id: 'item-3', name: 'Explaining Reasoning (ALSOL)',                       createdOn: '2026-05-15', createdBy: 'Garrett' },
-      { id: 'item-4', name: 'Source Selection (NASA Funding)',                    createdOn: '2026-05-20', createdBy: 'Jen' },
-      { id: 'item-5', name: 'Argument Audit (Microbiome and Brain)',              createdOn: '2026-05-20', createdBy: 'Garrett' },
+      { id: 'item-1', program: 'sat-rw', name: 'AI-Mediated Multisource Writing (Zoning Amendment)', createdOn: '2026-05-15', createdBy: 'Garrett' },
+      { id: 'item-2', program: 'sat-rw', name: 'Responsive Revision (Financial Literacy)',           createdOn: '2026-05-15', createdBy: 'Garrett' },
+      { id: 'item-3', program: 'sat-rw', name: 'Explaining Reasoning (ALSOL)',                       createdOn: '2026-05-15', createdBy: 'Garrett' },
+      { id: 'item-4', program: 'sat-rw', name: 'Source Selection (NASA Funding)',                    createdOn: '2026-05-20', createdBy: 'Jen' },
+      { id: 'item-5', program: 'sat-rw', name: 'Argument Audit (Microbiome and Brain)',              createdOn: '2026-05-20', createdBy: 'Garrett' },
     ];
 
     function formatDate(iso) {
@@ -1380,7 +1387,7 @@ The shift will be uncomfortable for an industry, a clinical profession, and a re
     /* ══════════════════════════════════════════════════════════════════
        REVIEW LIST
     ══════════════════════════════════════════════════════════════════ */
-    function ReviewList({ items, onItemClick, onRename, onHome }) {
+    function ReviewList({ items, program, onItemClick, onRename, onHome, onPrograms }) {
       const [sortKey, setSortKey]   = useState('name');
       const [sortDir, setSortDir]   = useState('asc');
       const [editingId, setEditingId] = useState(null);
@@ -1430,27 +1437,46 @@ The shift will be uncomfortable for an industry, a clinical profession, and a re
         <div style={{ background: NAVY, minHeight: '100vh', color: WHITE, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
           <div style={{ padding: '32px 32px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
             <div>
-              <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, marginBottom: 6 }}>REVIEW</div>
+              <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, marginBottom: 6 }}>REVIEW · {program?.label?.toUpperCase()}</div>
               <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 600, color: WHITE, marginBottom: 4 }}>Items</div>
               <div style={{ fontSize: 13, color: MUTED }}>{items.length} item{items.length !== 1 ? 's' : ''}</div>
             </div>
-            <button onClick={onHome} style={{
-              background: 'transparent', border: `1px solid ${BORDR}`, color: LT_TEXT,
-              padding: '8px 14px', borderRadius: 4, cursor: 'pointer', fontSize: 12,
-              display: 'flex', alignItems: 'center', gap: 8, letterSpacing: 0.5,
-              transition: 'border-color 0.15s, color 0.15s, background 0.15s'
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = BRIGHT; e.currentTarget.style.color = WHITE; e.currentTarget.style.background = DK_INPUT; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = BORDR; e.currentTarget.style.color = LT_TEXT; e.currentTarget.style.background = 'transparent'; }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                <polyline points="9 22 9 12 15 12 15 22"/>
-              </svg>
-              Home
-            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={onPrograms} style={{
+                background: 'transparent', border: `1px solid ${BORDR}`, color: LT_TEXT,
+                padding: '8px 14px', borderRadius: 4, cursor: 'pointer', fontSize: 12,
+                display: 'flex', alignItems: 'center', gap: 8, letterSpacing: 0.5,
+                transition: 'border-color 0.15s, color 0.15s, background 0.15s'
+              }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = BRIGHT; e.currentTarget.style.color = WHITE; e.currentTarget.style.background = DK_INPUT; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = BORDR; e.currentTarget.style.color = LT_TEXT; e.currentTarget.style.background = 'transparent'; }}>
+                <ArrowLeft size={13} color="currentColor" />
+                Programs
+              </button>
+              <button onClick={onHome} style={{
+                background: 'transparent', border: `1px solid ${BORDR}`, color: LT_TEXT,
+                padding: '8px 14px', borderRadius: 4, cursor: 'pointer', fontSize: 12,
+                display: 'flex', alignItems: 'center', gap: 8, letterSpacing: 0.5,
+                transition: 'border-color 0.15s, color 0.15s, background 0.15s'
+              }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = BRIGHT; e.currentTarget.style.color = WHITE; e.currentTarget.style.background = DK_INPUT; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = BORDR; e.currentTarget.style.color = LT_TEXT; e.currentTarget.style.background = 'transparent'; }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                  <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                Home
+              </button>
+            </div>
           </div>
 
           <div style={{ margin: '0 32px 32px', borderRadius: 6, border: `1px solid ${BORDR}`, overflow: 'hidden' }}>
+            {sorted.length === 0 ? (
+              <div style={{ padding: '60px 32px', textAlign: 'center', background: DK_CARD }}>
+                <div style={{ fontFamily: 'Georgia, serif', fontSize: 16, color: LT_TEXT, marginBottom: 6 }}>No items in this program yet.</div>
+                <div style={{ fontSize: 13, color: MUTED }}>Items created under <strong>{program?.label}</strong> will appear here.</div>
+              </div>
+            ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
@@ -1504,6 +1530,66 @@ The shift will be uncomfortable for an industry, a clinical profession, and a re
                 ))}
               </tbody>
             </table>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       PROGRAM SELECT
+    ══════════════════════════════════════════════════════════════════ */
+    function ProgramSelect({ items, onPick, onHome }) {
+      const [hovered, setHovered] = useState(null);
+      return (
+        <div style={{ background: NAVY, minHeight: '100vh', color: WHITE, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          <div style={{ padding: '32px 32px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+            <div>
+              <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2, marginBottom: 6 }}>REVIEW</div>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 600, color: WHITE, marginBottom: 4 }}>Select a testing program</div>
+              <div style={{ fontSize: 13, color: MUTED }}>Choose a program to view its items.</div>
+            </div>
+            <button onClick={onHome} style={{
+              background: 'transparent', border: `1px solid ${BORDR}`, color: LT_TEXT,
+              padding: '8px 14px', borderRadius: 4, cursor: 'pointer', fontSize: 12,
+              display: 'flex', alignItems: 'center', gap: 8, letterSpacing: 0.5,
+              transition: 'border-color 0.15s, color 0.15s, background 0.15s'
+            }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = BRIGHT; e.currentTarget.style.color = WHITE; e.currentTarget.style.background = DK_INPUT; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = BORDR; e.currentTarget.style.color = LT_TEXT; e.currentTarget.style.background = 'transparent'; }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+              Home
+            </button>
+          </div>
+
+          <div style={{ padding: '12px 32px 40px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, maxWidth: 820 }}>
+            {PROGRAMS.map(p => {
+              const count = items.filter(it => it.program === p.id).length;
+              const isHovered = hovered === p.id;
+              return (
+                <div key={p.id}
+                  onClick={() => onPick(p.id)}
+                  onMouseEnter={() => setHovered(p.id)}
+                  onMouseLeave={() => setHovered(null)}
+                  style={{
+                    background: isHovered ? DK_INPUT : DK_CARD,
+                    border: `1px solid ${isHovered ? BRIGHT : BORDR}`,
+                    borderRadius: 8, padding: '24px 26px', cursor: 'pointer',
+                    transition: 'border-color 0.2s, background 0.2s',
+                    display: 'flex', flexDirection: 'column', gap: 10, userSelect: 'none'
+                  }}>
+                  <div style={{ fontSize: 11, color: MUTED, letterSpacing: 2 }}>{p.tag.toUpperCase()}</div>
+                  <div style={{ fontFamily: 'Georgia, serif', fontSize: 22, fontWeight: 600, color: WHITE }}>{p.label}</div>
+                  <div style={{ fontSize: 13, color: count > 0 ? LT_TEXT : MUTED, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {count} item{count !== 1 ? 's' : ''}
+                    <span style={{ marginLeft: 'auto', color: isHovered ? BRIGHT : MUTED, transition: 'color 0.2s', fontSize: 16 }}>→</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       );
@@ -1616,23 +1702,28 @@ The shift will be uncomfortable for an industry, a clinical profession, and a re
        ROOT APP
     ══════════════════════════════════════════════════════════════════ */
     function App() {
-      const [view, setView]   = useState('landing');   // 'landing' | 'review' | 'item'
+      const [view, setView]   = useState('landing');   // 'landing' | 'programs' | 'review' | 'item'
       const [activeItemId, setActiveItemId] = useState(null);
+      const [selectedProgramId, setSelectedProgramId] = useState(null);
       const [items, setItems] = useState(INITIAL_ITEMS);
 
-      function openItem(id) { setActiveItemId(id); setView('item'); }
-      function goReview()    { setView('review'); setActiveItemId(null); }
-      function goLanding()   { setView('landing'); setActiveItemId(null); }
+      function openItem(id)        { setActiveItemId(id); setView('item'); }
+      function goPrograms()        { setView('programs'); setActiveItemId(null); }
+      function goReview(programId) { setSelectedProgramId(programId); setView('review'); setActiveItemId(null); }
+      function goLanding()         { setView('landing'); setActiveItemId(null); }
 
       function renameItem(id, newName) {
         setItems(prev => prev.map(it => it.id === id ? { ...it, name: newName } : it));
       }
 
       const activeItem = items.find(it => it.id === activeItemId);
+      const selectedProgram = PROGRAMS.find(p => p.id === selectedProgramId);
+      const programItems = items.filter(it => it.program === selectedProgramId);
 
-      if (view === 'landing') return <LandingPage onReview={goReview} />;
-      if (view === 'review')  return <ReviewList items={items} onItemClick={openItem} onRename={renameItem} onHome={goLanding} />;
-      if (view === 'item')    return <ItemViewer itemId={activeItemId} itemName={activeItem?.name} onBack={goReview} />;
+      if (view === 'landing')  return <LandingPage onReview={goPrograms} />;
+      if (view === 'programs') return <ProgramSelect items={items} onPick={goReview} onHome={goLanding} />;
+      if (view === 'review')   return <ReviewList items={programItems} program={selectedProgram} onItemClick={openItem} onRename={renameItem} onHome={goLanding} onPrograms={goPrograms} />;
+      if (view === 'item')     return <ItemViewer itemId={activeItemId} itemName={activeItem?.name} onBack={() => goReview(selectedProgramId)} />;
       return null;
     }
 
